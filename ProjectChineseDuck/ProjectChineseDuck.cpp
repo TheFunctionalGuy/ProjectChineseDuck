@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <array>
 
+#include "settings.h"
 #include "process.h"
 #include "memory.h"
 #include "player_entity.h"
@@ -10,7 +11,7 @@
 #include "gui.h"
 
 // Forward declaration
-void CalculateYawAndPitchToOtherPlayer(PlayerEntity local_player, PlayerEntity other_player, float& yaw, float& pitch);
+void CalculateYawAndPitchToOtherPlayer(const std::array<float, 3> local_player_position, const std::array<float, 3> target_position, float& yaw, float& pitch);
 std::array<float, 3> CorrectHeadPosition(const PlayerEntity player);
 
 int main() {
@@ -24,7 +25,14 @@ int main() {
 	}
 
 	// Settings
-	float fov = 90.0f;
+	Settings settings;
+	settings.fov = 30.0f;
+	settings.aim_for_head = true;
+	settings.ignore_teams = true;
+	settings.no_recoil = false;
+	settings.unlimited_ammo = false;
+	settings.unlimited_healh = false;
+	settings.unlimited_armor = false;
 
 	// Base addresses
 	uintptr_t module_base_address = NULL;
@@ -85,7 +93,15 @@ int main() {
 				float yaw;
 				float pitch;
 
-				CalculateYawAndPitchToOtherPlayer(local_player, player, yaw, pitch);
+				if (settings.aim_for_head) {
+					CalculateYawAndPitchToOtherPlayer(local_player.position_head, player.position_head, yaw, pitch);
+				} else {
+					// Correct body position
+					std::array<float, 3> corrected_position = player.position;
+					corrected_position[2] += 3.5f;
+
+					CalculateYawAndPitchToOtherPlayer(local_player.position_head, corrected_position, yaw, pitch);
+				}
 
 				float y_diff = std::abs(yaw - local_player.angles[0]);
 				if (y_diff > 180.0) y_diff = std::abs(y_diff - 360.0);
@@ -97,12 +113,11 @@ int main() {
 				players.insert(players.begin(), extended_player);
 			};
 
-			// TODO: Check if distance calculations are right. They seem a little bit of some times.
 			// Sort array by distance to local player
-			std::vector<ExtendedPlayerEntity> players_alive;
+			std::vector<ExtendedPlayerEntity> enemy_players_alive;
 
 			std::sort(players.begin(), players.end(), [](ExtendedPlayerEntity ent1, ExtendedPlayerEntity ent2) {return ent1.distance_to_local_player < ent2.distance_to_local_player; });
-			std::copy_if(players.begin(), players.end(), std::back_inserter(players_alive), [](ExtendedPlayerEntity ent) {return !ent.player.is_dead; });
+			std::copy_if(players.begin(), players.end(), std::back_inserter(enemy_players_alive), [&](ExtendedPlayerEntity ent) {return !ent.player.is_dead && (settings.ignore_teams || local_player.team != ent.player.team); });
 
 			if (GetAsyncKeyState(VK_END) & 1) {
 				std::cout << "Program exited." << std::endl;
@@ -112,8 +127,8 @@ int main() {
 
 			// Aimbot active
 			if (GetAsyncKeyState(VK_LCONTROL)) {
-				for (const auto& ent : players_alive) {
-					if (ent.fov_diff[0] < fov / 2.0f && ent.fov_diff[1] < fov / 2.0f) {
+				for (const auto& ent : enemy_players_alive) {
+					if (ent.fov_diff[0] < settings.fov / 2.0f && ent.fov_diff[1] < settings.fov / 2.0f) {
 						uintptr_t angles_address = FindDMAAddress(process, local_player_base, { 0x40 });
 
 						mem::PatchBytes((BYTE*)angles_address, (BYTE*)&ent.angles_from_local_player[0], sizeof(ent.angles_from_local_player[0]), process);
@@ -128,9 +143,9 @@ int main() {
 			gui::StartFrame();
 
 			// Gui stuff
-			gui::ShowOptions(&fov);
+			gui::ShowOptions(&settings);
 			gui::ShowLocalPlayerInformation(local_player);
-			gui::ShowPlayerInformation(players, fov);
+			gui::ShowPlayerInformation(players, settings.fov);
 
 			// Clear and sleep until next cycle
 			players.clear();
@@ -152,9 +167,9 @@ int main() {
 
 }
 
-void CalculateYawAndPitchToOtherPlayer(PlayerEntity local_player, PlayerEntity other_player, float& yaw, float& pitch) {
+void CalculateYawAndPitchToOtherPlayer(const std::array<float, 3> local_player_position, const std::array<float, 3> target_position, float& yaw, float& pitch) {
 	std::array<float, 3> target_relative_to_head = {};
-	vec::Subtract(other_player.position_head, local_player.position_head, target_relative_to_head);
+	vec::Subtract(target_position, local_player_position, target_relative_to_head);
 
 	float local_yaw = fmod(atan2(target_relative_to_head[1], target_relative_to_head[0]) * 180.0f / 3.141592653589793238463f - 270.0f, 360.0f);
 	if (local_yaw < 0) local_yaw += 360;

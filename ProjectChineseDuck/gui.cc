@@ -31,6 +31,17 @@ LRESULT WINAPI WindowProcedure(HWND window, UINT message, WPARAM w_param, LPARAM
 static ImVec4 clear_color = ImVec4(1.00f, 0.498f, 0.314f, 1.00f); // Coral
 // static ImVec4 clear_color = ImVec4(0.973f, 0.514f, 0.475f); // Colal pink
 
+// Constants
+const float kAliveColumnWidth = 50.0f;
+const float kNameColumnWidth = 125.0f;
+const float kHealthColumnWidth = 55.0f;
+const float kArmorColumnWidth = 55.0f;
+const float kPositionColumnWidth = 220.0f;
+const float kDistanceColumnWidth = 75.0f;
+const float kAngleColumnWidth = 200.0f;
+
+const float kTotalWidth = kAliveColumnWidth + kNameColumnWidth + kHealthColumnWidth + kArmorColumnWidth + kPositionColumnWidth + kDistanceColumnWidth + 2.0f * kAngleColumnWidth;
+
 HWND gui::InitGui() {
 	// Create application window
 	window_class = { sizeof(WNDCLASSEX), CS_CLASSDC, WindowProcedure, 0, 0, GetModuleHandle(NULL), NULL, NULL, NULL, NULL, _T("ProjectChineseDuck"), NULL };
@@ -89,10 +100,6 @@ void gui::Cleanup(HWND window_handle) {
 	UnregisterClass(window_class.lpszClassName, window_class.hInstance);
 }
 
-void gui::ShowPosition() {
-
-}
-
 // TODO: Print local player position and angles
 //std::cout << "Player position:" << std::endl;
 //std::cout << vec::ToString(local_player.position) << std::endl;
@@ -122,18 +129,8 @@ void gui::ShowLocalPlayerInformation(const PlayerEntity player) {
 }
 
 void gui::ShowPlayerInformation(const std::vector<ExtendedPlayerEntity> players, const float fov) {
-	const float kAliveColumnWidth = 50.0f;
-	const float kNameColumnWidth = 125.0f;
-	const float kHealthColumnWidth = 55.0f;
-	const float kArmorColumnWidth = 55.0f;
-	const float kPositionColumnWidth = 220.0f;
-	const float kDistanceColumnWidth = 75.0f;
-	const float kAngleColumnWidth = 200.0f;
-
-	const float total_width = kAliveColumnWidth + kNameColumnWidth + kHealthColumnWidth + kArmorColumnWidth + kPositionColumnWidth + kDistanceColumnWidth + 2.0f * kAngleColumnWidth;
-
-	ImGui::SetNextWindowSizeConstraints({ total_width, -1 }, { total_width, -1 });
-	ImGui::SetNextWindowPos({ 2, 2 });
+	ImGui::SetNextWindowSizeConstraints({ kTotalWidth, -1.0f }, { kTotalWidth, -1.0f });
+	ImGui::SetNextWindowPos({ 2.0f, 2.0f });
 	ImGui::Begin("Player information", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
 
 	if (players.size() > 0) {
@@ -158,12 +155,7 @@ void gui::ShowPlayerInformation(const std::vector<ExtendedPlayerEntity> players,
 		ImGui::Separator();
 
 		for (const auto& ent : players) {
-			if (ent.player.is_dead) {
-				ImGui::Text("0");
-			} else {
-				ImGui::Text("1");
-			}
-			ImGui::NextColumn();
+			ImGui::Text("%d", !ent.player.is_dead); ImGui::NextColumn();
 			ImGui::Text(ent.player.name); ImGui::NextColumn();
 			ImGui::Text("%d", ent.player.health); ImGui::NextColumn();
 			ImGui::Text("%d", ent.player.armor); ImGui::NextColumn();
@@ -190,11 +182,18 @@ void gui::ShowExtraPlayerInformation() {
 	ImGui::Columns();
 }
 
-void gui::ShowOptions(float* fov) {
-	ImGui::SetNextWindowPos({ 1000, 0 });
-	ImGui::Begin("Options", NULL, ImGuiWindowFlags_AlwaysAutoResize);
+void gui::ShowOptions(Settings* settings) {
+	ImGui::SetNextWindowPos({ kTotalWidth + 4.0f, 2.0f });
+	ImGui::SetNextWindowSizeConstraints({ 198.0f, -1.0f }, { 198.0f, -1.0f });
+	ImGui::Begin("Options", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
 
-	ImGui::SliderFloat("FOV", fov, 0.0f, 360.0f, "%0.f deg");
+	ImGui::SliderFloat("FOV", &settings->fov, 0.0f, 360.0f, "%0.f deg");
+	ImGui::Checkbox("Aim for head", &settings->aim_for_head);
+	ImGui::Checkbox("Ignore team", &settings->ignore_teams);
+	ImGui::Checkbox("No recoil", &settings->no_recoil);
+	ImGui::Checkbox("Unlimited ammo", &settings->unlimited_ammo);
+	ImGui::Checkbox("Unlimited health", &settings->unlimited_healh);
+	ImGui::Checkbox("Unlimited armor", &settings->unlimited_armor);
 
 	ImGui::End();
 }

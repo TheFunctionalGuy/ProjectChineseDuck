@@ -17,8 +17,10 @@ public:
 	int32_t armor; //0x00FC
 	char pad_0100[293]; //0x0100
 	char name[16]; //0x0225
-	char pad_0235[259]; //0x0235
-	bool is_dead; //0x0338
-}; //Size: 0x0339
+	char pad_0235[247]; //0x0235
+	int32_t team; //0x032C
+	char pad_0330[8]; //0x0330
+	int32_t is_dead; //0x0338
+}; //Size: 0x033C
 
 #endif // ACE_PLAYER_ENTITY_H_

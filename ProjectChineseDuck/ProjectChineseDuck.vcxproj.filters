@@ -102,5 +102,8 @@
     <ClInclude Include="extended_player_entity.h">
       <Filter>player_entity</Filter>
     </ClInclude>
+    <ClInclude Include="settings.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
