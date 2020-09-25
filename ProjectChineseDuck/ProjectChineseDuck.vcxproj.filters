@@ -99,5 +99,8 @@
     <ClInclude Include="gui.h">
       <Filter>gui</Filter>
     </ClInclude>
+    <ClInclude Include="extended_player_entity.h">
+      <Filter>player_entity</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

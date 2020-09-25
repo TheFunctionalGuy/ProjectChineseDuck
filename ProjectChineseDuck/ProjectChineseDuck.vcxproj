@@ -152,6 +152,7 @@
     <ClCompile Include="ProjectChineseDuck.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="extended_player_entity.h" />
     <ClInclude Include="gui.h" />
     <ClInclude Include="ImGui\imconfig.h" />
     <ClInclude Include="ImGui\imgui.h" />

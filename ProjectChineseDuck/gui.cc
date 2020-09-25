@@ -1,4 +1,6 @@
 #include "gui.h"
+#include "vector.h"
+
 #include <windows.h>
 #include <iostream>
 #include <tchar.h>
@@ -16,6 +18,7 @@ static ID3D11Device*           d3d_device = NULL;
 static ID3D11DeviceContext*    d3d_device_context = NULL;
 static IDXGISwapChain*         swap_chain = NULL;
 static ID3D11RenderTargetView* main_render_target_view = NULL;
+static WNDCLASSEX              window_class;
 
 // Forward declarations of helper functions
 bool CreateDeviceD3D(HWND window_handle);
@@ -24,60 +27,176 @@ void CreateRenderTarget();
 void CleanupRenderTarget();
 LRESULT WINAPI WindowProcedure(HWND window, UINT message, WPARAM w_param, LPARAM l_param);
 
-bool gui::InitGui() {
+// Colors
+static ImVec4 clear_color = ImVec4(1.00f, 0.498f, 0.314f, 1.00f); // Coral
+// static ImVec4 clear_color = ImVec4(0.973f, 0.514f, 0.475f); // Colal pink
+
+HWND gui::InitGui() {
 	// Create application window
-	WNDCLASSEX wc = { sizeof(WNDCLASSEX), CS_CLASSDC, WindowProcedure, 0, 0, GetModuleHandle(NULL), NULL, NULL, NULL, NULL, _T("ProjectChineseDuck"), NULL };
-	RegisterClassEx(&wc);
-	HWND window_handle = CreateWindow(wc.lpszClassName, _T("Project Chinese Duck v1.0"), WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, 0, 1000, 500, NULL, NULL, wc.hInstance, NULL);
+	window_class = { sizeof(WNDCLASSEX), CS_CLASSDC, WindowProcedure, 0, 0, GetModuleHandle(NULL), NULL, NULL, NULL, NULL, _T("ProjectChineseDuck"), NULL };
+	RegisterClassEx(&window_class);
+	HWND window_handle = CreateWindow(window_class.lpszClassName, _T("Project Chinese Duck v1.0"), WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 1200, 500, NULL, NULL, window_class.hInstance, NULL);
 
 	// Initialize Direct3D
 	if (!CreateDeviceD3D(window_handle)) {
 		CleanupDeviceD3D();
-		UnregisterClass(wc.lpszClassName, wc.hInstance);
+		UnregisterClass(window_class.lpszClassName, window_class.hInstance);
 
 		std::cout << "Direct3D device already busy!" << std::endl;
 
-		return 1;
+		return NULL;
 	}
 
 	// Show the window
 	ShowWindow(window_handle, SW_SHOWDEFAULT);
+	UpdateWindow(window_handle);
 
 	// Setup ImGui context
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
+	//ImGuiIO& io = ImGui::GetIO(); (void)io;
 
 	ImGui::StyleColorsDark();
 	ImGui_ImplWin32_Init(window_handle);
 	ImGui_ImplDX11_Init(d3d_device, d3d_device_context);
 
-	// State
-	ImVec4 clear_color = ImVec4(1.00f, 0.498f, 0.314f, 1.00f); // Coral
-	//ImVec4 clear_color = ImVec4(0.973f, 0.514f, 0.475f); // Colal pink
+	return window_handle;
+}
 
-	MSG message = {};
-	while (GetMessage(&message, NULL, 0, 0)) {
-		TranslateMessage(&message);
-		DispatchMessage(&message);
+void gui::Render() {
+	ImGui::Render();
+	d3d_device_context->OMSetRenderTargets(1, &main_render_target_view, NULL);
+	d3d_device_context->ClearRenderTargetView(main_render_target_view, (float*)&clear_color);
+	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
-		// Start frame
-		ImGui_ImplDX11_NewFrame();
-		ImGui_ImplWin32_NewFrame();
-		ImGui::NewFrame();
+	swap_chain->Present(1, 0); // Present with vsync
+}
 
-		// Render
-		ImGui::Render();
-		d3d_device_context->OMSetRenderTargets(1, &main_render_target_view, NULL);
-		d3d_device_context->ClearRenderTargetView(main_render_target_view, (float*) &clear_color);
-		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+void gui::StartFrame() {
+	ImGui_ImplDX11_NewFrame();
+	ImGui_ImplWin32_NewFrame();
+	ImGui::NewFrame();
+}
 
-		swap_chain->Present(1, 0); // Present with vsync
+void gui::Cleanup(HWND window_handle) {
+	ImGui_ImplDX11_Shutdown();
+	ImGui_ImplWin32_Shutdown();
+	ImGui::DestroyContext();
+
+	CleanupDeviceD3D();
+	DestroyWindow(window_handle);
+	UnregisterClass(window_class.lpszClassName, window_class.hInstance);
+}
+
+void gui::ShowPosition() {
+
+}
+
+// TODO: Print local player position and angles
+//std::cout << "Player position:" << std::endl;
+//std::cout << vec::ToString(local_player.position) << std::endl;
+void gui::ShowLocalPlayerInformation(const PlayerEntity player) {
+	ImGui::Begin("Local player information");
+
+	ImGui::Columns(2, "local_player_columns");
+	ImGui::Separator();
+	ImGui::Text("Name"); ImGui::NextColumn();
+	ImGui::Text(player.name); ImGui::NextColumn();
+	ImGui::Separator();
+	ImGui::Text("Health"); ImGui::NextColumn();
+	ImGui::Text("%d" ,player.health); ImGui::NextColumn();
+	ImGui::Separator();
+	ImGui::Text("Armor"); ImGui::NextColumn();
+	ImGui::Text("%d", player.armor); ImGui::NextColumn();
+	ImGui::Separator();
+	ImGui::Text("Yaw"); ImGui::NextColumn();
+	ImGui::Text("%f", player.angles[0]); ImGui::NextColumn();
+	ImGui::Separator();
+	ImGui::Text("Pitch"); ImGui::NextColumn();
+	ImGui::Text("%f", player.angles[1]); ImGui::NextColumn();
+	ImGui::Columns(1);
+	ImGui::Separator();
+	
+	ImGui::End();
+}
+
+void gui::ShowPlayerInformation(const std::vector<ExtendedPlayerEntity> players, const float fov) {
+	const float kAliveColumnWidth = 50.0f;
+	const float kNameColumnWidth = 125.0f;
+	const float kHealthColumnWidth = 55.0f;
+	const float kArmorColumnWidth = 55.0f;
+	const float kPositionColumnWidth = 220.0f;
+	const float kDistanceColumnWidth = 75.0f;
+	const float kAngleColumnWidth = 200.0f;
+
+	const float total_width = kAliveColumnWidth + kNameColumnWidth + kHealthColumnWidth + kArmorColumnWidth + kPositionColumnWidth + kDistanceColumnWidth + 2.0f * kAngleColumnWidth;
+
+	ImGui::SetNextWindowSizeConstraints({ total_width, -1 }, { total_width, -1 });
+	ImGui::SetNextWindowPos({ 2, 2 });
+	ImGui::Begin("Player information", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+
+	if (players.size() > 0) {
+		ImGui::Columns(8, "player_columns");
+		ImGui::SetColumnWidth(0, kAliveColumnWidth);
+		ImGui::SetColumnWidth(1, kNameColumnWidth);
+		ImGui::SetColumnWidth(2, kHealthColumnWidth);
+		ImGui::SetColumnWidth(3, kArmorColumnWidth);
+		ImGui::SetColumnWidth(4, kPositionColumnWidth);
+		ImGui::SetColumnWidth(5, kDistanceColumnWidth);
+		ImGui::SetColumnWidth(6, kAngleColumnWidth);
+		ImGui::SetColumnWidth(7, kAngleColumnWidth);
+		ImGui::Separator();
+		ImGui::Text("Alive"); ImGui::NextColumn();
+		ImGui::Text("Name"); ImGui::NextColumn();
+		ImGui::Text("Health"); ImGui::NextColumn();
+		ImGui::Text("Armor"); ImGui::NextColumn();
+		ImGui::Text("Position"); ImGui::NextColumn();
+		ImGui::Text("Distance"); ImGui::NextColumn();
+		ImGui::Text("Angles from local player"); ImGui::NextColumn();
+		ImGui::Text("Angle differences"); ImGui::NextColumn();
+		ImGui::Separator();
+
+		for (const auto& ent : players) {
+			if (ent.player.is_dead) {
+				ImGui::Text("0");
+			} else {
+				ImGui::Text("1");
+			}
+			ImGui::NextColumn();
+			ImGui::Text(ent.player.name); ImGui::NextColumn();
+			ImGui::Text("%d", ent.player.health); ImGui::NextColumn();
+			ImGui::Text("%d", ent.player.armor); ImGui::NextColumn();
+			ImGui::Text("X: %6.2f Y: %6.2f Z: %6.2f", ent.player.position[0], ent.player.position[1], ent.player.position[2]); ImGui::NextColumn();
+			ImGui::Text("%6.2f m", ent.distance_to_local_player); ImGui::NextColumn();
+			ImGui::Text("Yaw: %6.2f Pitch: %6.2f", ent.angles_from_local_player[0], ent.angles_from_local_player[1]); ImGui::NextColumn();
+
+			if (ent.fov_diff[0] < fov / 2.0f && ent.fov_diff[1] < fov / 2.0f) {
+				ImGui::TextColored(ImVec4(1.0f, 0.0f, 1.0f, 1.0f), "Yaw: %6.2f Pitch: %6.2f", ent.fov_diff[0], ent.fov_diff[1]); ImGui::NextColumn();
+			} else {
+				ImGui::Text("Yaw: %6.2f Pitch: %6.2f", ent.fov_diff[0], ent.fov_diff[1]); ImGui::NextColumn();
+			}
+		}
+		ImGui::Columns(1);
+		ImGui::Separator();
+	} else {
+		ImGui::Text("No other players on server.");
 	}
 
-	//ImGuiIO& io = ImGui::GetIO(); (void)io;
+	ImGui::End();
+}
 
-	return true;
+void gui::ShowExtraPlayerInformation() {
+	ImGui::Columns();
+}
+
+void gui::ShowOptions(float* fov) {
+	ImGui::SetNextWindowPos({ 1000, 0 });
+	ImGui::Begin("Options", NULL, ImGuiWindowFlags_AlwaysAutoResize);
+
+	ImGui::SliderFloat("FOV", fov, 0.0f, 360.0f, "%0.f deg");
+
+	ImGui::End();
 }
 
 // Helper functions
@@ -156,10 +275,18 @@ LRESULT WINAPI WindowProcedure(HWND window, UINT message, WPARAM w_param, LPARAM
 		return true;
 
 	switch (message) {
-	case WM_DESTROY:
-		PostQuitMessage(0);
+		case WM_SIZE:
+			if (d3d_device != NULL && w_param != SIZE_MINIMIZED) {
+				CleanupRenderTarget();
+				swap_chain->ResizeBuffers(0, (UINT)LOWORD(l_param), (UINT)HIWORD(l_param), DXGI_FORMAT_UNKNOWN, 0);
+				CreateRenderTarget();
+			}
 
-		return 0;
+			return 0;
+		case WM_DESTROY:
+			PostQuitMessage(0);
+
+			return 0;
 	}
 
 	return DefWindowProc(window, message, w_param, l_param);
