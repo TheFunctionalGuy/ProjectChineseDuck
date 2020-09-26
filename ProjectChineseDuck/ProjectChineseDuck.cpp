@@ -27,7 +27,7 @@ int main() {
 	// Settings
 	Settings settings;
 	settings.fov = 30.0f;
-	settings.aim_for_head = true;
+	settings.aim_for_head = false;
 	settings.ignore_teams = true;
 	settings.no_recoil = false;
 	settings.unlimited_ammo = false;

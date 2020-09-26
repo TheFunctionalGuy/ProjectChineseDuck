@@ -46,7 +46,7 @@ HWND gui::InitGui() {
 	// Create application window
 	window_class = { sizeof(WNDCLASSEX), CS_CLASSDC, WindowProcedure, 0, 0, GetModuleHandle(NULL), NULL, NULL, NULL, NULL, _T("ProjectChineseDuck"), NULL };
 	RegisterClassEx(&window_class);
-	HWND window_handle = CreateWindow(window_class.lpszClassName, _T("Project Chinese Duck v1.0"), WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 1200, 500, NULL, NULL, window_class.hInstance, NULL);
+	HWND window_handle = CreateWindow(window_class.lpszClassName, _T("Project Chinese Duck v1.0"), WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 1200, 700, NULL, NULL, window_class.hInstance, NULL);
 
 	// Initialize Direct3D
 	if (!CreateDeviceD3D(window_handle)) {
@@ -100,9 +100,6 @@ void gui::Cleanup(HWND window_handle) {
 	UnregisterClass(window_class.lpszClassName, window_class.hInstance);
 }
 
-// TODO: Print local player position and angles
-//std::cout << "Player position:" << std::endl;
-//std::cout << vec::ToString(local_player.position) << std::endl;
 void gui::ShowLocalPlayerInformation(const PlayerEntity player) {
 	ImGui::Begin("Local player information");
 
@@ -122,6 +119,15 @@ void gui::ShowLocalPlayerInformation(const PlayerEntity player) {
 	ImGui::Separator();
 	ImGui::Text("Pitch"); ImGui::NextColumn();
 	ImGui::Text("%f", player.angles[1]); ImGui::NextColumn();
+	ImGui::Separator();
+	ImGui::Text("X"); ImGui::NextColumn();
+	ImGui::Text("%f", player.position[0]); ImGui::NextColumn();
+	ImGui::Separator();
+	ImGui::Text("Y"); ImGui::NextColumn();
+	ImGui::Text("%f", player.position[1]); ImGui::NextColumn();
+	ImGui::Separator();
+	ImGui::Text("Z"); ImGui::NextColumn();
+	ImGui::Text("%f", player.position[2]); ImGui::NextColumn();
 	ImGui::Columns(1);
 	ImGui::Separator();
 	
