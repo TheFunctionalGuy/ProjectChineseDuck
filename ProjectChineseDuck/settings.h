@@ -8,7 +8,7 @@ struct Settings
 	bool ignore_teams;
 	bool no_recoil;
 	bool unlimited_ammo;
-	bool unlimited_healh;
+	bool unlimited_health;
 	bool unlimited_armor;
 };
 

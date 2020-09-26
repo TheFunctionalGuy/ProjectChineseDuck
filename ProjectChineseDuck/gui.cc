@@ -192,7 +192,7 @@ void gui::ShowOptions(Settings* settings) {
 	ImGui::Checkbox("Ignore team", &settings->ignore_teams);
 	ImGui::Checkbox("No recoil", &settings->no_recoil);
 	ImGui::Checkbox("Unlimited ammo", &settings->unlimited_ammo);
-	ImGui::Checkbox("Unlimited health", &settings->unlimited_healh);
+	ImGui::Checkbox("Unlimited health", &settings->unlimited_health);
 	ImGui::Checkbox("Unlimited armor", &settings->unlimited_armor);
 
 	ImGui::End();

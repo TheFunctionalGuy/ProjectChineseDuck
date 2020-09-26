@@ -31,7 +31,7 @@ int main() {
 	settings.ignore_teams = true;
 	settings.no_recoil = false;
 	settings.unlimited_ammo = false;
-	settings.unlimited_healh = false;
+	settings.unlimited_health = false;
 	settings.unlimited_armor = false;
 
 	// Base addresses
@@ -137,6 +137,34 @@ int main() {
 						break;
 					}
 				}
+			}
+
+			// TODO: only patch once
+			if (settings.no_recoil) {
+				const BYTE patched_bytes[14] = { 0xB8, 0x00, 0x00, 0x00, 0x00, 0x90, 0x90, 0xB9, 0x00, 0x00, 0x00, 0x00, 0x90, 0x90 };
+				mem::PatchBytes((BYTE*)module_base_address + 0x6226D, (BYTE*)&patched_bytes, sizeof(patched_bytes), process);
+			} else { 
+				const BYTE unpatched_bytes[14] = { 0x0F, 0xBF, 0x87, 0x20, 0x01, 0x00, 0x00, 0x0F, 0xBF, 0x8F, 0x22, 0x01, 0x00, 0x00 };
+				mem::PatchBytes((BYTE*)module_base_address + 0x6226D, (BYTE*)&unpatched_bytes, sizeof(unpatched_bytes), process);
+			}
+
+			// TODO: only patch once
+			if (settings.unlimited_ammo) {
+				const BYTE patched_bytes[2] = { 0x90, 0x90 };
+				mem::PatchBytes((BYTE*)module_base_address + 0x637E9, (BYTE*)&patched_bytes, sizeof(patched_bytes), process);
+			} else {
+				const BYTE unpatched_bytes[2] = { 0xFF, 0x0E };
+				mem::PatchBytes((BYTE*)module_base_address + 0x637E9, (BYTE*)&unpatched_bytes, sizeof(unpatched_bytes), process);
+			}
+
+			if (settings.unlimited_health) {
+				const int32_t patched_health_value = 1337;
+				mem::PatchBytes((BYTE*)local_player_address + 0xF8, (BYTE*)&patched_health_value, sizeof(patched_health_value), process);
+			}
+
+			if (settings.unlimited_armor) {
+				const int32_t patched_armor_value = 1338;
+				mem::PatchBytes((BYTE*)local_player_address + 0xFC, (BYTE*)&patched_armor_value, sizeof(patched_armor_value), process);
 			}
 
 			// Start frame
