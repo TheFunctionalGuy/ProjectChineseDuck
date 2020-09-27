@@ -1,8 +1,7 @@
 #ifndef ACE_SETTINGS_H_
 #define ACE_SETTINGS_H_
 
-struct Settings
-{
+struct Settings {
 	float fov;
 	bool aim_for_head;
 	bool ignore_teams;
