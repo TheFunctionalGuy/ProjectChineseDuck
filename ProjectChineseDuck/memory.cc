@@ -1,6 +1,6 @@
 #include "memory.h"
 
-void mem::PatchBytes(BYTE* dst, const BYTE* src, const unsigned int size, const HANDLE process) {
+void mem::PatchBytes(BYTE* const dst, const BYTE* src, const unsigned int size, const HANDLE process) {
 	DWORD old_protect;
 
 	VirtualProtectEx(process, dst, size, PAGE_EXECUTE_READWRITE, &old_protect);
@@ -8,7 +8,7 @@ void mem::PatchBytes(BYTE* dst, const BYTE* src, const unsigned int size, const 
 	VirtualProtectEx(process, dst, size, old_protect, &old_protect);
 }
 
-void mem::NopBytes(BYTE* dst, const unsigned int size, const HANDLE process) {
+void mem::NopBytes(BYTE* const dst, const unsigned int size, const HANDLE process) {
 	BYTE* nop_array = new BYTE[size];
 	memset(nop_array, 0x90, size);
 
