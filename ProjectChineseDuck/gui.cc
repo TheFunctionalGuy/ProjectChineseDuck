@@ -22,15 +22,15 @@ static ID3D11RenderTargetView* main_render_target_view = NULL;
 static WNDCLASSEX              window_class;
 
 // Forward declarations of helper functions
-bool CreateDeviceD3D(HWND window_handle);
+bool CreateDeviceD3D(const HWND& window_handle);
 void CleanupDeviceD3D();
 void CreateRenderTarget();
 void CleanupRenderTarget();
 LRESULT WINAPI WindowProcedure(HWND window, UINT message, WPARAM w_param, LPARAM l_param);
 
 // Colors
-static ImVec4 clear_color = ImVec4(1.00f, 0.498f, 0.314f, 1.00f); // Coral
-// static ImVec4 clear_color = ImVec4(0.973f, 0.514f, 0.475f); // Colal pink
+static ImVec4 color_coral = ImVec4(1.00f, 0.498f, 0.314f, 1.00f); // Coral
+static ImVec4 color_coral_pink = ImVec4(0.973f, 0.514f, 0.475f, 1.00f); // Colal pink
 
 // Constants
 const float kAliveColumnWidth = 50.0f;
@@ -79,7 +79,7 @@ HWND gui::InitGui() {
 void gui::Render() {
 	ImGui::Render();
 	d3d_device_context->OMSetRenderTargets(1, &main_render_target_view, NULL);
-	d3d_device_context->ClearRenderTargetView(main_render_target_view, (float*)&clear_color);
+	d3d_device_context->ClearRenderTargetView(main_render_target_view, (float*)&color_coral);
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
 	swap_chain->Present(1, 0); // Present with vsync
@@ -91,7 +91,7 @@ void gui::StartFrame() {
 	ImGui::NewFrame();
 }
 
-void gui::Cleanup(HWND window_handle) {
+void gui::Cleanup(const HWND& window_handle) {
 	ImGui_ImplDX11_Shutdown();
 	ImGui_ImplWin32_Shutdown();
 	ImGui::DestroyContext();
@@ -101,7 +101,7 @@ void gui::Cleanup(HWND window_handle) {
 	UnregisterClass(window_class.lpszClassName, window_class.hInstance);
 }
 
-void gui::ShowLocalPlayerInformation(const PlayerEntity player) {
+void gui::ShowLocalPlayerInformation(const PlayerEntity& player) {
 	ImGui::Begin("Local player information");
 
 	ImGui::Columns(2, "local_player_columns");
@@ -135,7 +135,7 @@ void gui::ShowLocalPlayerInformation(const PlayerEntity player) {
 	ImGui::End();
 }
 
-void gui::ShowPlayerInformation(const std::vector<ExtendedPlayerEntity> players, const float fov) {
+void gui::ShowPlayerInformation(const std::vector<ExtendedPlayerEntity>& players, const float fov) {
 	ImGui::SetNextWindowSizeConstraints({ kTotalWidth, -1.0f }, { kTotalWidth, -1.0f });
 	ImGui::SetNextWindowPos({ 2.0f, 2.0f });
 	ImGui::Begin("Player information", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
@@ -189,24 +189,24 @@ void gui::ShowExtraPlayerInformation() {
 	ImGui::Columns();
 }
 
-void gui::ShowOptions(Settings* settings) {
+void gui::ShowOptions(Settings& settings) {
 	ImGui::SetNextWindowPos({ kTotalWidth + 4.0f, 2.0f });
 	ImGui::SetNextWindowSizeConstraints({ 198.0f, -1.0f }, { 198.0f, -1.0f });
 	ImGui::Begin("Options", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
 
-	ImGui::SliderFloat("FOV", &settings->fov, 0.0f, 360.0f, "%0.f deg");
-	ImGui::Checkbox("Aim for head", &settings->aim_for_head);
-	ImGui::Checkbox("Ignore team", &settings->ignore_teams);
-	ImGui::Checkbox("No recoil", &settings->no_recoil);
-	ImGui::Checkbox("Unlimited ammo", &settings->unlimited_ammo);
-	ImGui::Checkbox("Unlimited health", &settings->unlimited_health);
-	ImGui::Checkbox("Unlimited armor", &settings->unlimited_armor);
+	ImGui::SliderFloat("FOV", &settings.fov, 0.0f, 360.0f, "%0.f deg");
+	ImGui::Checkbox("Aim for head", &settings.aim_for_head);
+	ImGui::Checkbox("Ignore team", &settings.ignore_teams);
+	ImGui::Checkbox("No recoil", &settings.no_recoil);
+	ImGui::Checkbox("Unlimited ammo", &settings.unlimited_ammo);
+	ImGui::Checkbox("Unlimited health", &settings.unlimited_health);
+	ImGui::Checkbox("Unlimited armor", &settings.unlimited_armor);
 
 	ImGui::End();
 }
 
 // Helper functions
-bool CreateDeviceD3D(HWND window_handle) {
+bool CreateDeviceD3D(const HWND& window_handle) {
 	// Setup swap chain
 	DXGI_SWAP_CHAIN_DESC swap_chain_description;
 	ZeroMemory(&swap_chain_description, sizeof(swap_chain_description));

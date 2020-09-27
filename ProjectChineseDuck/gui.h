@@ -8,11 +8,11 @@ namespace gui {
 	HWND InitGui();
 	void Render();
 	void StartFrame();
-	void Cleanup(HWND window_handle);
-	void ShowLocalPlayerInformation(const PlayerEntity player);
-	void ShowPlayerInformation(const std::vector<ExtendedPlayerEntity> players, const float fov);
+	void Cleanup(const HWND& window_handle);
+	void ShowLocalPlayerInformation(const PlayerEntity& player);
+	void ShowPlayerInformation(const std::vector<ExtendedPlayerEntity>& players, const float fov);
 	void ShowExtraPlayerInformation();
-	void ShowOptions(Settings* settings);
+	void ShowOptions(Settings& settings);
 }
 
 #endif // ACE_GUI_H_
