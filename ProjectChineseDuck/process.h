@@ -5,10 +5,8 @@
 
 #include <vector>
 
-DWORD GetProcessId(const wchar_t* process_name);
-
-uintptr_t GetModuleBaseAddress(const DWORD process_id, const wchar_t* module_name);
-
-uintptr_t FindDMAAddress(const HANDLE process, const uintptr_t base_pointer, const std::vector<unsigned int> offsets);
+DWORD GetProcessId(const wchar_t* const process_name);
+uintptr_t GetModuleBaseAddress(const DWORD process_id, const wchar_t* const module_name);
+uintptr_t FindDMAAddress(const HANDLE process, const uintptr_t base_pointer, const std::vector<unsigned int>& offsets);
 
 #endif // ACE_PROCESS_H_

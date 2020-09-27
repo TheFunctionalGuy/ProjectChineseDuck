@@ -2,7 +2,7 @@
 
 #include <TlHelp32.h>
 
-DWORD GetProcessId(const wchar_t* process_name) {
+DWORD GetProcessId(const wchar_t* const process_name) {
 	DWORD process_id = 0;
 	HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
 
@@ -25,7 +25,7 @@ DWORD GetProcessId(const wchar_t* process_name) {
 	return process_id;
 }
 
-uintptr_t GetModuleBaseAddress(const DWORD process_id, const wchar_t* module_name) {
+uintptr_t GetModuleBaseAddress(const DWORD process_id, const wchar_t* const module_name) {
 	uintptr_t module_base_address = 0;
 	HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, process_id);
 
@@ -48,7 +48,7 @@ uintptr_t GetModuleBaseAddress(const DWORD process_id, const wchar_t* module_nam
 	return module_base_address;
 }
 
-uintptr_t FindDMAAddress(const HANDLE process, const uintptr_t base_pointer, const std::vector<unsigned int> offsets) {
+uintptr_t FindDMAAddress(const HANDLE process, const uintptr_t base_pointer, const std::vector<unsigned int>& offsets) {
 	uintptr_t resolved_address = base_pointer;
 
 	for (unsigned int i = 0; i < offsets.size(); i++) {
