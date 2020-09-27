@@ -1,9 +1,9 @@
 #ifndef ACE_EXTENDED_PLAYER_ENTITY_H_
 #define ACE_EXTENDED_PLAYER_ENTITY_H_
 
-#include "player_entity.h"
-
 #include <array>
+
+#include "player_entity.h"
 
 class ExtendedPlayerEntity {
 public:

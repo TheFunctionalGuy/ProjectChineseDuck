@@ -1,15 +1,16 @@
 #include "gui.h"
-#include "vector.h"
 
-#include <windows.h>
-#include <iostream>
+#include <d3d11.h>
 #include <tchar.h>
+#include <windows.h>
+
+#include <iostream>
 
 #include "ImGui/imgui.h"
 #include "ImGui/imgui_impl_win32.h"
 #include "ImGui/imgui_impl_dx11.h"
+#include "vector.h"
 
-#include <d3d11.h>
 //#define DIRECTINPUT_VERSION 0x0800
 //#include <dinput.h>
 

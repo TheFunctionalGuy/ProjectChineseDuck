@@ -1,12 +1,8 @@
 #ifndef ACE_GUI_H_
 #define ACE_GUI_H_
 
-#include "settings.h"
-#include "player_entity.h"
 #include "extended_player_entity.h"
-
-#include <cstdint>
-#include <string>
+#include "settings.h"
 
 namespace gui {
 	HWND InitGui();

@@ -1,14 +1,13 @@
-#include <iostream>
 #include <algorithm>
 #include <array>
+#include <iostream>
 
-#include "settings.h"
-#include "process.h"
-#include "memory.h"
-#include "player_entity.h"
 #include "extended_player_entity.h"
-#include "vector.h"
 #include "gui.h"
+#include "memory.h"
+#include "process.h"
+#include "settings.h"
+#include "vector.h"
 
 // Forward declaration
 void CalculateYawAndPitchToOtherPlayer(const std::array<float, 3> local_player_position, const std::array<float, 3> target_position, float& yaw, float& pitch);

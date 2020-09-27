@@ -1,4 +1,5 @@
 #include "process.h"
+
 #include <TlHelp32.h>
 
 DWORD GetProcessId(const wchar_t* process_name) {

@@ -1,5 +1,6 @@
 #ifndef ACE_MEMORY_H_
 #define ACE_MEMORY_H_
+
 #include <Windows.h>
 
 namespace mem {

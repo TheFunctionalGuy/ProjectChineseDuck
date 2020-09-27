@@ -1,9 +1,10 @@
 #ifndef ACE_PLAYER_ENTITY_H_
 #define ACE_PLAYER_ENTITY_H_
 
-#include "process.h"
-#include <cstdint>
 #include <array>
+#include <cstdint>
+
+#include "process.h"
 
 class PlayerEntity {
 public:
