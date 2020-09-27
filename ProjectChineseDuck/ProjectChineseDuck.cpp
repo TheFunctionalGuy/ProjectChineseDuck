@@ -110,7 +110,7 @@ int main() {
 				float z_diff = std::abs(pitch - local_player.angles[1]);
 				if (z_diff > 180.0f) z_diff = std::abs(z_diff - 360.0f);
 
-				ExtendedPlayerEntity extended_player = ExtendedPlayerEntity(player, distance, { yaw, pitch }, { y_diff, z_diff });
+				ExtendedPlayerEntity extended_player = { player, distance, { yaw, pitch }, { y_diff, z_diff } };
 
 				players.push_back(extended_player);
 			};
