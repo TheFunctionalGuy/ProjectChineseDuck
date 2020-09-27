@@ -10,8 +10,11 @@
 #include "vector.h"
 
 // Forward declaration
-void CalculateYawAndPitchToOtherPlayer(const std::array<float, 3> local_player_position, const std::array<float, 3> target_position, float& yaw, float& pitch);
-std::array<float, 3> CorrectHeadPosition(const PlayerEntity player);
+void CalculateYawAndPitchToOtherPlayer(const std::array<float, 3>& local_player_position, const std::array<float, 3>& target_position, float& yaw, float& pitch);
+std::array<float, 3> CorrectHeadPosition(const PlayerEntity& player);
+
+// Pi constant
+constexpr float kPi = 3.141592653589793238463f;
 
 int main() {
 	HWND window_handle = gui::InitGui();
@@ -103,13 +106,13 @@ int main() {
 				}
 
 				float y_diff = std::abs(yaw - local_player.angles[0]);
-				if (y_diff > 180.0) y_diff = std::abs(y_diff - 360.0);
+				if (y_diff > 180.0f) y_diff = std::abs(y_diff - 360.0f);
 				float z_diff = std::abs(pitch - local_player.angles[1]);
-				if (z_diff > 180.0) z_diff = std::abs(z_diff - 360.0);
+				if (z_diff > 180.0f) z_diff = std::abs(z_diff - 360.0f);
 
 				ExtendedPlayerEntity extended_player = ExtendedPlayerEntity(player, distance, { yaw, pitch }, { y_diff, z_diff });
 
-				players.insert(players.begin(), extended_player);
+				players.push_back(extended_player);
 			};
 
 			// Sort array by distance to local player
@@ -170,7 +173,7 @@ int main() {
 			gui::StartFrame();
 
 			// Gui stuff
-			gui::ShowOptions(&settings);
+			gui::ShowOptions(settings);
 			gui::ShowLocalPlayerInformation(local_player);
 			gui::ShowPlayerInformation(players, settings.fov);
 
@@ -194,15 +197,15 @@ int main() {
 
 }
 
-void CalculateYawAndPitchToOtherPlayer(const std::array<float, 3> local_player_position, const std::array<float, 3> target_position, float& yaw, float& pitch) {
+void CalculateYawAndPitchToOtherPlayer(const std::array<float, 3>& local_player_position, const std::array<float, 3>& target_position, float& yaw, float& pitch) {
 	std::array<float, 3> target_relative_to_head = {};
 	vec::Subtract(target_position, local_player_position, target_relative_to_head);
 
-	float local_yaw = fmod(atan2(target_relative_to_head[1], target_relative_to_head[0]) * 180.0f / 3.141592653589793238463f - 270.0f, 360.0f);
-	if (local_yaw < 0) local_yaw += 360;
+	float local_yaw = fmod(atan2(target_relative_to_head[1], target_relative_to_head[0]) * 180.0f / kPi - 270.0f, 360.0f);
+	if (local_yaw < 0) local_yaw += 360.0f;
 
 	float tmp = sqrt(target_relative_to_head[0] * target_relative_to_head[0] + target_relative_to_head[1] * target_relative_to_head[1]);
-	float local_pitch = atan2(-target_relative_to_head[2], tmp) * 180.0 / 3.141592653589793238463;
+	float local_pitch = atan2(-target_relative_to_head[2], tmp) * 180.0f / kPi;
 	local_pitch = -local_pitch;
 
 	yaw = local_yaw;
@@ -210,7 +213,7 @@ void CalculateYawAndPitchToOtherPlayer(const std::array<float, 3> local_player_p
 }
 
 // TODO: implement correct head offset
-std::array<float, 3> CorrectHeadPosition(const PlayerEntity player) {
+std::array<float, 3> CorrectHeadPosition(const PlayerEntity& player) {
 	std::array<float, 3> corrected_head = player.position_head;
 	corrected_head[2] += 0.2f;
 
